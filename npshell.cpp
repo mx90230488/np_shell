@@ -1,6 +1,4 @@
-//wait_proc[第幾行要接上]=pid
-//pid_pipe[pid]=(vector)p[2]
-//做到 "!"
+
 #include <iostream>
 #include <stdlib.h>
 #include <sstream>
@@ -237,9 +235,6 @@ int main()
                     close(p_num[wait_now][0]);
                     close(p_num[wait_now][1]);
 
-                    //close(p[now_pipe][0]);
-                    //dup2(p[now_pipe][1],STDOUT_FILENO);
-                    //close(p[now_pipe][1]);
                     char*argv[MAX_WORDS_IN_LINE]={0};
                     for(int j=0;j<i-bar_pos.at(last_bar)-1;j++){
                         argv[j]=(char*)cmd.at(bar_pos.at(last_bar)+j+1).data();
@@ -275,9 +270,7 @@ int main()
                 pipe_create++;
                 int now_pipe=pipe_create-1;
                 int last_pipe=pipe_create-2;
-                //last_bar=bar_pos.size()-1;
-                //fprintf(stderr,"bar_pos size-1 %d \n",last_bar);
-                //if(last_pipe<0) last_pipe=0;
+                
                 if(pipe(p[now_pipe])<0) std::cout<<"create pipe error\n";
                 int status;
                 int pid=fork();
@@ -329,7 +322,7 @@ int main()
                         exit(EXIT_FAILURE);
                     }
                     
-                    //std::cout<<"parent status %d"<<status<<endl;
+                    
                 }   
             }
         }
