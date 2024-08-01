@@ -36,15 +36,15 @@ int main()
     vector<string>cmd;
     string temp;
     vector<int>bar_pos;
-    unordered_map<int,int>wait_num;
+    unordered_map<int,int>wait_num; // p_num_idx在 cur == wait_num[p_num_idx] can output
     int p_num_idx=0;
     int cur=0;
     init();
-    int p[MAX_PIPE][2]={0};
+    int p[MAX_PIPE][2]={0}; //1:write 0:read
     int p_num[MAX_PIPE][2]={0};
     while(1){
-        vector<int>wait_proc;
-        cur++;
+        vector<int>wait_proc; // process_idx
+        
         string c_in="";
         string temp="";
         int now_bar=0;
@@ -53,13 +53,14 @@ int main()
         bar_pos.clear();
         bar_pos.push_back(-1);
         int pipe_create=0;
-        int std_in=dup(STDIN_FILENO);
-        int std_out=dup(STDOUT_FILENO);
+        //int std_in=dup(STDIN_FILENO);
+        //int std_out=dup(STDOUT_FILENO);
         ss.clear();
         cmd.clear();
         cout<<"% ";
         if(!std::getline(cin,c_in,'\n')) break;
         ss.str(c_in);
+        
         for(int i=0;ss>>temp;i++){
             cmd.push_back(temp);
             if(temp=="|"){
@@ -75,14 +76,15 @@ int main()
             continue;
         }
         if(cmd[0]=="exit") break;
-        int need_catch=0;
+        int need_catch=0; // 1:have process need output in the cmd
         for(auto &i:wait_num){
             int p=i.first,col=i.second;
-            if(col==cur){
+            if(col==cur+1){
                 wait_proc.push_back(i.first);
                 need_catch=1;
             }
         }
+        cur++; // index of cmd
         for(int i=0;i<cmd.size();i++){
             if(cmd[i]=="|"||cmd[i]==">"||cmd[i][0]=='|'){
                 now_bar=std::find(bar_pos.begin(),bar_pos.end(),i)-bar_pos.begin();
@@ -280,16 +282,16 @@ int main()
                         close(p[last_pipe][0]);
                         close(p[last_pipe][1]);
                     }
+                    
                     if(need_catch){
-                        if(need_catch){
-                            for(int i=0;i<wait_proc.size();i++){
-                                dup2(p_num[wait_proc[i]][0],STDIN_FILENO);
-                                close(p_num[wait_proc[i]][0]);
-                                close(p_num[wait_proc[i]][1]);
-                            }
-                            need_catch=0;
+                        for(int i=0;i<wait_proc.size();i++){
+                            dup2(p_num[wait_proc[i]][0],STDIN_FILENO);
+                            close(p_num[wait_proc[i]][0]);
+                            close(p_num[wait_proc[i]][1]);
                         }
+                        need_catch=0;
                     }
+                    
                     //std::cout<<"last pipe "<<last_pipe<<"now_pipe "<<now_pipe<<std::endl;
                     close(p[now_pipe][0]);
                     close(p[now_pipe][1]);
@@ -300,6 +302,7 @@ int main()
                     }
                     argv[i-bar_pos.at(now_bar)]=NULL;
                     if(execvp(argv[0],argv)<0){
+                        //close(1);
                         fprintf(stderr,"Unknown command: [%s]\n",argv[0]);
                     }
                     exit(0);
